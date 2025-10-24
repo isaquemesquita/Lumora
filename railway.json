@@ -1,0 +1,9 @@
+{
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "venv/bin/python backend.py",
+    "restartPolicyType": "ON_FAILURE"
+  }
+}
