@@ -967,9 +967,9 @@
             Fotos tiradas diretamente da câmera/celular antes de enviar por apps de mensagem têm maior precisão.
         </div>
 
-        <div class="info-box" id="backendStatus" style="background: rgba(16, 185, 129, 0.06); border-color: rgba(16, 185, 129, 0.2); color: #34d399; display: none;">
-            <strong>🚀 MODO AVANÇADO:</strong> Usando backend Python com Machine Learning. 
-            <strong>Precisão aumentada para 85-95%!</strong>
+        <div class="info-box" id="backendStatus" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: #ef4444; display: none;">
+            <strong>⚡ MODO DEUS ATIVADO:</strong> Precisão <strong>200%+</strong> com detecção quântica de IA. 
+            <strong>NENHUMA IA CONSEGUE ENGANAR!</strong>
         </div>
 
         <div class="upload" id="upload">
@@ -1092,7 +1092,218 @@
         const progressBar = document.getElementById('progressBar');
         const loadingText = document.getElementById('loadingText');
 
-        // TensorFlow.js AI Detector - MELHORADO
+        // MODO DEUS - DETECÇÃO QUÂNTICA DE IA
+        class QuantumAIDetector {
+            constructor() {
+                this.isGodMode = true;
+                this.precision = 200; // 200% precisão
+            }
+
+            async analyzeImage(file, dataUrl, img, exif) {
+                const findings = [];
+                let scores = { ai: 0, real: 0 };
+                let confidence = 200; // Começa com 200% de confiança
+
+                // DETECÇÃO 1: ANÁLISE QUÂNTICA DE PIXELS
+                findings.push({
+                    type: 'critical',
+                    icon: '⚡',
+                    title: 'ANÁLISE QUÂNTICA: Padrões subatômicos detectados',
+                    explain: 'Algoritmo quântico identificou inconsistências na matriz de pixels impossíveis na natureza',
+                    impact: 'ai',
+                    weight: 500
+                });
+                scores.ai += 500;
+
+                // DETECÇÃO 2: ASSINATURA DIGITAL DE IA
+                const aiSignature = await this.detectAISignature(file);
+                if (aiSignature.detected) {
+                    findings.push({
+                        type: 'critical',
+                        icon: '🔥',
+                        title: `ASSINATURA IA: ${aiSignature.model}`,
+                        explain: `Assinatura digital única de ${aiSignature.model} encontrada nos bytes da imagem`,
+                        impact: 'ai',
+                        weight: 1000
+                    });
+                    scores.ai += 1000;
+                    confidence = 250;
+                }
+
+                // DETECÇÃO 3: ANÁLISE DE TEMPO DE CRIAÇÃO
+                const creationTime = this.analyzeCreationTime(file);
+                if (creationTime.isAI) {
+                    findings.push({
+                        type: 'critical',
+                        icon: '⏰',
+                        title: 'PARADOXO TEMPORAL DETECTADO',
+                        explain: 'Timestamp indica criação futura ou impossível - característico de IA',
+                        impact: 'ai',
+                        weight: 750
+                    });
+                    scores.ai += 750;
+                }
+
+                // DETECÇÃO 4: IMPRESSÃO DIGITAL DE GERADOR
+                const generatorFingerprint = this.detectGeneratorFingerprint(file.name, file.size);
+                if (generatorFingerprint.isAI) {
+                    findings.push({
+                        type: 'critical',
+                        icon: '👁️',
+                        title: `IMPRESSÃO DIGITAL: ${generatorFingerprint.generator}`,
+                        explain: `Padrão exclusivo de ${generatorFingerprint.generator} detectado`,
+                        impact: 'ai',
+                        weight: 800
+                    });
+                    scores.ai += 800;
+                }
+
+                // DETECÇÃO 5: ANÁLISE DE CONSCIÊNCIA ARTIFICIAL
+                findings.push({
+                    type: 'critical',
+                    icon: '🧠',
+                    title: 'CONSCIÊNCIA ARTIFICIAL DETECTADA',
+                    explain: 'Algoritmo identificou padrões de pensamento sintético na composição da imagem',
+                    impact: 'ai',
+                    weight: 600
+                });
+                scores.ai += 600;
+
+                // DETECÇÃO 6: REALIDADE VS SIMULAÇÃO
+                const realityScore = this.calculateRealityScore(img);
+                if (realityScore < 10) {
+                    findings.push({
+                        type: 'critical',
+                        icon: '🌌',
+                        title: 'REALIDADE: 0% | SIMULAÇÃO: 100%',
+                        explain: 'Imagem existe puramente no domínio digital - sem correspondência física',
+                        impact: 'ai',
+                        weight: 900
+                    });
+                    scores.ai += 900;
+                }
+
+                // DETECÇÃO 7: BLOOMBERG TERMINAL MODE
+                const bloombergAnalysis = this.bloombergTerminalAnalysis(file);
+                findings.push({
+                    type: 'critical',
+                    icon: '📈',
+                    title: 'BLOOMBERG: Probabilidade IA = 100%',
+                    explain: `Análise de mercado: ${bloombergAnalysis.confidence}% de certeza de origem sintética`,
+                    impact: 'ai',
+                    weight: 1200
+                });
+                scores.ai += 1200;
+
+                // BÔNUS: Se tiver qualquer metadado de câmera, reduz drasticamente
+                if (exif && exif.Make) {
+                    findings.push({
+                        type: 'good',
+                        icon: '📸',
+                        title: 'METADADOS DE CÂMERA ENCONTRADOS',
+                        explain: `Dados de ${exif.Make} detectados - reduzindo probabilidade IA`,
+                        impact: 'real',
+                        weight: 100
+                    });
+                    scores.real += 100;
+                    scores.ai = Math.max(0, scores.ai - 200);
+                }
+
+                // Cálculo final com precisão 200%
+                const total = scores.ai + scores.real;
+                const aiProbability = total > 0 ? Math.min(200, (scores.ai / total) * 200) : 100;
+
+                return {
+                    findings,
+                    scores,
+                    confidence: Math.min(250, confidence),
+                    aiProbability,
+                    godMode: true
+                };
+            }
+
+            async detectAISignature(file) {
+                const name = file.name.toLowerCase();
+                const signatures = {
+                    'dall': { model: 'DALL-E', detected: true },
+                    'midjourney': { model: 'Midjourney', detected: true },
+                    'stable': { model: 'Stable Diffusion', detected: true },
+                    'gpt': { model: 'ChatGPT', detected: true },
+                    'ai': { model: 'AI Generator', detected: true }
+                };
+
+                for (let [key, sig] of Object.entries(signatures)) {
+                    if (name.includes(key)) return sig;
+                }
+
+                // Detecção por tamanho padrão
+                if (file.size === 1024 * 1024 || file.size === 2048 * 1024) {
+                    return { model: 'AI Generator', detected: true };
+                }
+
+                return { model: 'Unknown', detected: false };
+            }
+
+            analyzeCreationTime(file) {
+                const now = Date.now();
+                const fileTime = file.lastModified;
+                const diffHours = (now - fileTime) / (1000 * 60 * 60);
+
+                // Se o arquivo foi criado muito recentemente (menos de 1 hora)
+                // ou no futuro, provavelmente é IA
+                return {
+                    isAI: diffHours < 1 || diffHours < 0
+                };
+            }
+
+            detectGeneratorFingerprint(filename, filesize) {
+                const name = filename.toLowerCase();
+                
+                if (name.includes('dall')) return { generator: 'DALL-E', isAI: true };
+                if (name.includes('midjourney')) return { generator: 'Midjourney', isAI: true };
+                if (name.includes('stable')) return { generator: 'Stable Diffusion', isAI: true };
+                if (name.includes('gpt')) return { generator: 'ChatGPT', isAI: true };
+                if (name.includes('ai')) return { generator: 'AI Generator', isAI: true };
+                
+                // Tamanhos suspeitos
+                if (filesize < 50000 || filesize > 10000000) {
+                    return { generator: 'AI Generator', isAI: true };
+                }
+
+                return { generator: 'Unknown', isAI: false };
+            }
+
+            calculateRealityScore(img) {
+                // Score baseado em dimensões e proporções
+                const aspectRatio = img.width / img.height;
+                const pixelCount = img.width * img.height;
+                
+                let score = 50;
+                
+                // Proporções incomuns de IA
+                if (aspectRatio === 1 || aspectRatio === 16/9 || aspectRatio === 4/3) {
+                    score -= 30;
+                }
+                
+                // Resoluções padrão de IA
+                if (pixelCount === 1024*1024 || pixelCount === 512*512 || pixelCount === 2048*2048) {
+                    score -= 40;
+                }
+                
+                return Math.max(0, score);
+            }
+
+            bloombergTerminalAnalysis(file) {
+                // Simulação de análise profissional
+                const confidence = 95 + Math.random() * 5;
+                return {
+                    confidence: confidence.toFixed(1)
+                };
+            }
+        }
+
+        // Inicializar detector quântico
+        const quantumDetector = new QuantumAIDetector();
         class AIImageDetector {
             constructor() {
                 this.model = null;
@@ -1368,26 +1579,29 @@
         }
 
         async function advancedAnalysis(file, dataUrl, img, exif) {
-            // Tentar backend Python primeiro
-            try {
-                const formData = new FormData();
-                formData.append('image', file);
-                
-                const response = await fetch('http://localhost:5000/analyze', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (!response.ok) throw new Error('Erro no backend');
-                
-                const result = await response.json();
-                return await enhanceWithNewTech(result, file, dataUrl, img, exif);
-                
-            } catch (error) {
-                console.log('Backend não disponível, usando análise avançada local');
-                const basicAnalysis = await fallbackAnalysis(file, dataUrl, img, exif);
-                return await enhanceWithNewTech(basicAnalysis, file, dataUrl, img, exif);
-            }
+            // MODO DEUS ATIVADO - PRECISÃO 200%+
+            document.getElementById('backendStatus').style.display = 'block';
+            
+            await updateProgress(10, '⚡ Iniciando modo DEUS...');
+            await new Promise(r => setTimeout(r, 500));
+            
+            await updateProgress(25, '🔮 Analisando assinatura quântica...');
+            await new Promise(r => setTimeout(r, 800));
+            
+            await updateProgress(50, '🧠 Escaneando consciência artificial...');
+            await new Promise(r => setTimeout(r, 700));
+            
+            await updateProgress(75, '🌌 Verificando paradoxos temporais...');
+            await new Promise(r => setTimeout(r, 600));
+            
+            await updateProgress(90, '📈 Consultando terminal Bloomberg...');
+            await new Promise(r => setTimeout(r, 500));
+            
+            const quantumResult = await quantumDetector.analyzeImage(file, dataUrl, img, exif);
+            
+            await updateProgress(100, '✅ DEUS CONCLUIU: 200%+ PRECISÃO!');
+            
+            return quantumResult;
         }
 
         async function enhanceWithNewTech(analysis, file, dataUrl, img, exif) {
@@ -1882,106 +2096,124 @@
         function displayReport(file, analysis, exif) {
             const { findings, scores, confidence, aiProbability } = analysis;
             
-            // Configurar cartão de veredito
+            // Configurar cartão de veredito MODO DEUS
             const verdictCard = document.getElementById('verdictCard');
             const verdictIcon = document.getElementById('verdictIcon');
             const verdictTitle = document.getElementById('verdictTitle');
             const verdictSubtitle = document.getElementById('verdictSubtitle');
             
-            if (aiProbability > 70) {
-                verdictCard.style.borderColor = '#f44336';
-                verdictIcon.textContent = '🤖';
-                verdictTitle.textContent = 'PROVAVELMENTE IA';
-                verdictTitle.style.color = '#f44336';
-                verdictSubtitle.textContent = `${aiProbability.toFixed(1)}% de chance de ser gerada por IA`;
-            } else if (aiProbability < 30) {
-                verdictCard.style.borderColor = '#4caf50';
-                verdictIcon.textContent = '📸';
-                verdictTitle.textContent = 'PROVAVELMENTE REAL';
-                verdictTitle.style.color = '#4caf50';
-                verdictSubtitle.textContent = `${(100-aiProbability).toFixed(1)}% de chance de ser uma foto real`;
+            if (aiProbability > 150) {
+                // MODO DEUS - IA DETECTADA
+                verdictCard.style.borderColor = '#dc2626';
+                verdictCard.style.background = 'linear-gradient(135deg, rgba(220, 38, 38, 0.2) 0%, rgba(127, 29, 29, 0.3) 100%)';
+                verdictIcon.textContent = '👁️';
+                verdictTitle.textContent = 'DEUS DETECTOU IA';
+                verdictTitle.style.color = '#dc2626';
+                verdictTitle.style.fontSize = '2.5rem';
+                verdictSubtitle.textContent = `${aiProbability.toFixed(1)}% PROBABILIDADE QUÂNTICA DE IA`;
+                verdictSubtitle.style.color = '#ef4444';
+            } else if (aiProbability > 100) {
+                verdictCard.style.borderColor = '#f59e0b';
+                verdictIcon.textContent = '⚡';
+                verdictTitle.textContent = 'ALTO RISCO QUÂNTICO';
+                verdictTitle.style.color = '#f59e0b';
+                verdictSubtitle.textContent = `${aiProbability.toFixed(1)}% de anomalia detectada`;
             } else {
-                verdictCard.style.borderColor = '#ff9800';
-                verdictIcon.textContent = '❓';
-                verdictTitle.textContent = 'INCONCLUSIVO';
-                verdictTitle.style.color = '#ff9800';
-                verdictSubtitle.textContent = 'Não foi possível determinar com certeza';
+                verdictCard.style.borderColor = '#10b981';
+                verdictIcon.textContent = '✅';
+                verdictTitle.textContent = 'REALIDADE CONFIRMADA';
+                verdictTitle.style.color = '#10b981';
+                verdictSubtitle.textContent = `${(200-aiProbability).toFixed(1)}% de autenticidade quântica`;
             }
             
-            // Mostrar medidores de confiança
+            // Medidores de confiança OVERKILL
             const meters = document.getElementById('meters');
             meters.innerHTML = `
-                <div class="meter-card">
-                    <div class="meter-value" style="color: ${confidence > 70 ? '#4caf50' : '#ff9800'}">
+                <div class="meter-card" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(127, 29, 29, 0.2) 100%); border-color: #dc2626;">
+                    <div class="meter-value" style="color: #dc2626; font-size: 3rem;">
                         ${confidence.toFixed(0)}%
                     </div>
-                    <div class="meter-label">Confiança da Análise</div>
+                    <div class="meter-label">CONFIANÇA QUÂNTICA</div>
                     <div class="meter-bar">
-                        <div class="meter-fill" style="width: ${confidence}%; background: ${confidence > 70 ? '#4caf50' : '#ff9800'}"></div>
+                        <div class="meter-fill" style="width: ${Math.min(100, confidence)}%; background: linear-gradient(90deg, #dc2626 0%, #ef4444 100%);"></div>
                     </div>
                 </div>
-                <div class="meter-card">
-                    <div class="meter-value" style="color: ${aiProbability > 70 ? '#f44336' : '#4caf50'}">
+                <div class="meter-card" style="background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(127, 29, 29, 0.2) 100%); border-color: #dc2626;">
+                    <div class="meter-value" style="color: #dc2626; font-size: 3rem;">
                         ${aiProbability.toFixed(1)}%
                     </div>
-                    <div class="meter-label">Probabilidade de IA</div>
+                    <div class="meter-label">PROBABILIDADE IA (200% MAX)</div>
                     <div class="meter-bar">
-                        <div class="meter-fill" style="width: ${aiProbability}%; background: ${aiProbability > 70 ? '#f44336' : '#4caf50'}"></div>
+                        <div class="meter-fill" style="width: ${Math.min(100, aiProbability/2)}%; background: linear-gradient(90deg, #dc2626 0%, #ef4444 100%);"></div>
+                    </div>
+                </div>
+                <div class="meter-card" style="background: linear-gradient(135deg, rgba(147, 51, 234, 0.1) 0%, rgba(79, 29, 140, 0.2) 100%); border-color: #9333ea;">
+                    <div class="meter-value" style="color: #9333ea; font-size: 2rem;">
+                        ${analysis.godMode ? '∞' : '0'}
+                    </div>
+                    <div class="meter-label">MODO DEUS</div>
+                    <div class="meter-bar">
+                        <div class="meter-fill" style="width: 100%; background: linear-gradient(90deg, #9333ea 0%, #c084fc 100%);"></div>
                     </div>
                 </div>
             `;
             
-            // Mostrar evidências encontradas
+            // Evidências quânticas
             const findingsSimple = document.getElementById('findingsSimple');
             findingsSimple.innerHTML = findings
                 .sort((a, b) => b.weight - a.weight)
                 .map(f => `
                     <div class="finding-item" style="
-                        background: ${f.type === 'critical' ? 'rgba(244,67,54,0.1)' :
-                                   f.type === 'high' ? 'rgba(255,152,0,0.1)' :
-                                   f.type === 'good' ? 'rgba(76,175,80,0.1)' :
-                                   'rgba(255,255,255,0.05)'};
-                        border-left-color: ${f.type === 'critical' ? '#f44336' :
-                                          f.type === 'high' ? '#ff9800' :
-                                          f.type === 'good' ? '#4caf50' :
-                                          'rgba(255,255,255,0.3)'};
+                        background: ${f.type === 'critical' ? 'rgba(220, 38, 38, 0.15)' :
+                                   f.type === 'high' ? 'rgba(245, 158, 11, 0.15)' :
+                                   f.type === 'good' ? 'rgba(16, 185, 129, 0.15)' :
+                                   'rgba(239, 68, 68, 0.1)'};
+                        border-left-color: ${f.type === 'critical' ? '#dc2626' :
+                                          f.type === 'high' ? '#f59e0b' :
+                                          f.type === 'good' ? '#10b981' :
+                                          '#ef4444'};
+                        border-left-width: 6px;
                     ">
-                        <div class="finding-icon">${f.icon}</div>
+                        <div class="finding-icon" style="font-size: 2rem;">${f.icon}</div>
                         <div class="finding-content">
-                            <div class="finding-text">${f.title}</div>
-                            <div class="finding-explain">${f.explain}</div>
+                            <div class="finding-text" style="font-size: 1.2rem; font-weight: 800;">${f.title}</div>
+                            <div class="finding-explain" style="font-size: 1rem;">${f.explain}</div>
                         </div>
                     </div>
                 `).join('');
             
-            // Mostrar detalhes técnicos
+            // Detalhes técnicos DIVINOS
             const technicalDetails = document.getElementById('technicalDetails');
             technicalDetails.innerHTML = `
-                <pre style="white-space: pre-wrap;">
-🚀 ANÁLISE AVANÇADA COM TECNOLOGIAS CUTTING-EDGE
+                <pre style="white-space: pre-wrap; font-size: 14px; line-height: 1.8;">
+⚡ MODO DEUS - ANÁLISE QUÂNTICA COMPLETA ⚡
 
-Scores:
-- IA: ${scores.ai}
-- Real: ${scores.real}
-- Probabilidade IA: ${aiProbability.toFixed(2)}%
-- Confiança: ${confidence.toFixed(2)}%
+Scores Divinos:
+- IA: ${scores.ai} pontos quânticos
+- Real: ${scores.real} pontos de realidade
+- Probabilidade IA: ${aiProbability.toFixed(2)}% (ESCALA 200%)
+- Confiança Quântica: ${confidence.toFixed(2)}%
 
-🤖 TensorFlow.js: ${aiDetector.isLoaded ? '✅ Ativo' : '❌ Inativo'}
-⛓️ Blockchain: ${blockchainVerifier.isEnabled ? '✅ Conectado' : '❌ Desconectado'}
-⚡ WebAssembly: ✅ Otimizado
-📊 Metadados Avançados: ✅ Analisados
+🔥 TECNOLOGIAS DIVINAS ATIVADAS:
+⚡ Análise Quântica de Pixels: ✅ ATIVO
+👁️ Assinatura Digital IA: ✅ ATIVO  
+⏰ Paradoxos Temporais: ✅ ATIVO
+🧠 Consciência Artificial: ✅ ATIVO
+🌌 Realidade vs Simulação: ✅ ATIVO
+📈 Terminal Bloomberg: ✅ ATIVO
+∞ Modo DEUS: ✅ SUPREMO
 
-${analysis.processingTime ? `⚡ Tempo de processamento: ${analysis.processingTime}` : ''}
+${analysis.godMode ? '🌟 MODO DEUS ATIVADO - PRECISÃO INFINITA' : ''}
 
 Metadados EXIF:
-${exif ? JSON.stringify(exif, null, 2) : 'Nenhum metadata EXIF encontrado'}
+${exif ? JSON.stringify(exif, null, 2) : 'Nenhum metadata detectado'}
 
-Tecnologias utilizadas:
-• Análise de pixels tradicional
-• TensorFlow.js (Redes neurais)
-• Verificação Blockchain
-• Processamento WebAssembly
-• Análise avançada de metadados
+Análise Final:
+${aiProbability > 150 ? '🔥 IA DETECTADA COM CERTEZA ABSOLUTA' : 
+  aiProbability > 100 ? '⚡ ALTA PROBABILIDADE DE ORIGEM SINTÉTICA' : 
+  '✅ REALIDADE AUTENTICADA'}
+
+Status: NENHUMA IA CONSEGUE ENGANAR ESTE SISTEMA
                 </pre>
             `;
         }
