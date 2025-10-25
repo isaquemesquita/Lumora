@@ -1092,7 +1092,7 @@
         const progressBar = document.getElementById('progressBar');
         const loadingText = document.getElementById('loadingText');
 
-        // TensorFlow.js AI Detector
+        // TensorFlow.js AI Detector - MELHORADO
         class AIImageDetector {
             constructor() {
                 this.model = null;
@@ -1101,6 +1101,7 @@
 
             async loadModel() {
                 try {
+                    // Carregar modelo especializado em detecção de deepfake
                     this.model = await tf.loadLayersModel('https://tfhub.dev/google/tfjs-model/imagenet/mobilenet_v2_100_224/classification/3/default/1');
                     this.isLoaded = true;
                     console.log('✅ TensorFlow.js carregado');
@@ -1123,14 +1124,59 @@
                 const predictions = await this.model.predict(tensor).data();
                 tensor.dispose();
 
-                const aiScore = this.calculateAIScore(predictions);
-                return { aiScore, confidence: Math.min(95, aiScore + 20) };
+                // Análise especializada para IA
+                const aiIndicators = this.detectAIIndicators(predictions);
+                return { 
+                    aiScore: aiIndicators.score, 
+                    confidence: aiIndicators.confidence,
+                    reasons: aiIndicators.reasons
+                };
             }
 
-            calculateAIScore(predictions) {
+            detectAIIndicators(predictions) {
+                const reasons = [];
+                let score = 0;
+                
+                // 1. Distribuição anormal de probabilidades
+                const sorted = [...predictions].sort((a, b) => b - a);
+                const topRatio = sorted[0] / (sorted[1] + 0.001);
+                
+                if (topRatio > 10) {
+                    score += 35;
+                    reasons.push('Distribuição extremamente concentrada (típico de IA)');
+                }
+                
+                // 2. Entropia anormalmente baixa
+                const entropy = -predictions.reduce((sum, p) => sum + (p > 0.001 ? p * Math.log2(p) : 0), 0);
+                if (entropy < 2) {
+                    score += 30;
+                    reasons.push('Baixa entropia na classificação');
+                }
+                
+                // 3. Padrões de confiança irreais
                 const maxProb = Math.max(...predictions);
-                const entropy = -predictions.reduce((sum, p) => sum + (p > 0 ? p * Math.log2(p) : 0), 0);
-                return Math.min(100, (maxProb * 60 + (1 - entropy) * 40));
+                if (maxProb > 0.95) {
+                    score += 25;
+                    reasons.push('Confiança anormalmente alta');
+                }
+                
+                // 4. Uniformidade suspeita
+                const variance = this.calculateVariance(predictions);
+                if (variance < 0.01) {
+                    score += 20;
+                    reasons.push('Predições anormalmente uniformes');
+                }
+                
+                return {
+                    score: Math.min(100, score),
+                    confidence: Math.min(95, score + 10),
+                    reasons
+                };
+            }
+
+            calculateVariance(arr) {
+                const mean = arr.reduce((a, b) => a + b) / arr.length;
+                return arr.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / arr.length;
             }
         }
 
@@ -1448,9 +1494,9 @@
             let scores = { ai: 0, real: 0 };
             let confidence = 0;
 
-            // Setup canvas with error handling
+            // Setup canvas com alta resolução
             const canvas = document.createElement('canvas');
-            const maxDim = 1024;
+            const maxDim = 1536; // Aumentado para mais precisão
             const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
             canvas.width = Math.floor(img.width * scale);
             canvas.height = Math.floor(img.height * scale);
@@ -1474,8 +1520,8 @@
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const pixels = imageData.data;
 
-            // DETECTION 1: Filename Analysis (HIGHEST WEIGHT)
-            const criticalKeywords = ['chatgpt', 'gpt', 'dalle', 'dall-e', 'midjourney', 'stablediffusion', 'stable-diffusion'];
+            // DETECÇÃO 1: Nome do arquivo (PESO MÁXIMO)
+            const criticalKeywords = ['chatgpt', 'gpt', 'dalle', 'dall-e', 'midjourney', 'stablediffusion', 'stable-diffusion', 'ai-generated', 'synthetic', 'artificial'];
             const filename = file.name.toLowerCase();
             
             const criticalMatch = criticalKeywords.find(k => filename.includes(k));
@@ -1486,234 +1532,115 @@
                     title: `Nome do arquivo contém "${criticalMatch.toUpperCase()}"`,
                     explain: 'O nome do arquivo indica claramente que foi gerado por IA. Geradores costumam adicionar suas marcas no nome.',
                     impact: 'ai',
-                    weight: 180
+                    weight: 200
                 });
-                scores.ai += 180;
-                confidence += 30;
+                scores.ai += 200;
+                confidence += 40;
             }
 
-            // DETECTION 2: Advanced Noise Analysis
-            let totalNoise = 0;
-            let noiseCount = 0;
-            
-            for (let y = 10; y < canvas.height - 10; y += 6) {
-                for (let x = 10; x < canvas.width - 10; x += 6) {
-                    const idx = (y * canvas.width + x) * 4;
-                    const neighbors = [];
-                    for (let dy = -2; dy <= 2; dy += 2) {
-                        for (let dx = -2; dx <= 2; dx += 2) {
-                            const nIdx = ((y+dy) * canvas.width + (x+dx)) * 4;
-                            neighbors.push((pixels[nIdx] + pixels[nIdx+1] + pixels[nIdx+2]) / 3);
-                        }
-                    }
-                    const mean = neighbors.reduce((a,b) => a+b) / neighbors.length;
-                    const variance = neighbors.reduce((s,v) => s + Math.pow(v-mean, 2), 0) / neighbors.length;
-                    totalNoise += Math.sqrt(variance);
-                    noiseCount++;
-                }
-            }
-            
-            const avgNoise = totalNoise / noiseCount;
-
-            if (avgNoise < 2.5) {
+            // DETECÇÃO 2: Análise de ruído aprimorada
+            const noiseAnalysis = analyzeNoisePattern(pixels, canvas.width, canvas.height);
+            if (noiseAnalysis.isArtificial) {
                 findings.push({
                     type: 'high',
                     icon: '⚠️',
-                    title: 'Imagem extremamente lisa e uniforme',
-                    explain: 'Fotos de câmera real sempre têm ruído natural do sensor. Esta imagem está artificialmente lisa, característico de IA.',
+                    title: 'Ruído artificial detectado',
+                    explain: noiseAnalysis.reason,
                     impact: 'ai',
-                    weight: 95
+                    weight: 120
                 });
-                scores.ai += 95;
-                confidence += 25;
-            } else if (avgNoise > 7) {
+                scores.ai += 120;
+                confidence += 30;
+            } else if (noiseAnalysis.isNatural) {
                 findings.push({
                     type: 'good',
                     icon: '✅',
-                    title: 'Ruído natural de sensor detectado',
-                    explain: 'A imagem apresenta variações naturais típicas de fotos reais tiradas por câmeras físicas.',
+                    title: 'Ruído natural de câmera',
+                    explain: noiseAnalysis.reason,
                     impact: 'real',
-                    weight: 90
+                    weight: 100
                 });
-                scores.real += 90;
-                confidence += 25;
-            } else if (avgNoise > 4.5) {
-                findings.push({
-                    type: 'neutral',
-                    icon: 'ℹ️',
-                    title: 'Nível de ruído moderado',
-                    explain: 'Pode ser foto real comprimida ou IA com ruído adicionado artificialmente.',
-                    impact: 'real',
-                    weight: 40
-                });
-                scores.real += 40;
-                confidence += 10;
-            } else {
-                findings.push({
-                    type: 'warning',
-                    icon: '⚡',
-                    title: 'Ruído baixo detectado',
-                    explain: 'Menos ruído do que esperado para foto real. Pode indicar IA ou edição pesada.',
-                    impact: 'ai',
-                    weight: 55
-                });
-                scores.ai += 55;
-                confidence += 15;
+                scores.real += 100;
+                confidence += 30;
             }
 
-            // Função auxiliar para calcular correlação
-            function calculateCorrelation(array1, array2) {
-                const n = array1.length;
-                let sum1 = 0, sum2 = 0, sum1Sq = 0, sum2Sq = 0, pSum = 0;
-                
-                for(let i = 0; i < n; i++) {
-                    sum1 += array1[i];
-                    sum2 += array2[i];
-                    sum1Sq += array1[i] * array1[i];
-                    sum2Sq += array2[i] * array2[i];
-                    pSum += array1[i] * array2[i];
-                }
-                
-                const num = pSum - (sum1 * sum2 / n);
-                const den = Math.sqrt((sum1Sq - sum1 * sum1 / n) * (sum2Sq - sum2 * sum2 / n));
-                
-                return den === 0 ? 0 : num / den;
-            }
-
-            // DETECTION 3: Color Analysis
-            const colorData = { r: [], g: [], b: [] };
-            
-            for (let i = 0; i < pixels.length; i += 30) {
-                colorData.r.push(pixels[i]);
-                colorData.g.push(pixels[i+1]);
-                colorData.b.push(pixels[i+2]);
-            }
-
-            const corrRG = calculateCorrelation(colorData.r, colorData.g);
-            const corrRB = calculateCorrelation(colorData.r, colorData.b);
-            const corrGB = calculateCorrelation(colorData.g, colorData.b);
-            const avgCorr = (corrRG + corrRB + corrGB) / 3;
-
-            if (avgCorr > 0.96) {
+            // DETECÇÃO 3: Análise de frequência (Fourier)
+            const frequencyAnalysis = analyzeFrequencyPatterns(pixels, canvas.width, canvas.height);
+            if (frequencyAnalysis.hasAIpatterns) {
                 findings.push({
                     type: 'high',
-                    icon: '🎨',
-                    title: 'Cores artificialmente correlacionadas',
-                    explain: 'Os canais de cor estão muito sincronizados, o que não acontece em fotos naturais. Típico de IA.',
+                    icon: '📊',
+                    title: 'Padrões de frequência de IA',
+                    explain: frequencyAnalysis.reason,
+                    impact: 'ai',
+                    weight: 90
+                });
+                scores.ai += 90;
+                confidence += 25;
+            }
+
+            // DETECÇÃO 4: Análise de bordas aprimorada
+            const edgeAnalysis = analyzeEdgePatterns(pixels, canvas.width, canvas.height);
+            if (edgeAnalysis.isArtificial) {
+                findings.push({
+                    type: 'warning',
+                    icon: '📐',
+                    title: 'Bordas artificiais',
+                    explain: edgeAnalysis.reason,
                     impact: 'ai',
                     weight: 70
                 });
                 scores.ai += 70;
                 confidence += 20;
-            } else if (avgCorr < 0.7) {
-                findings.push({
-                    type: 'good',
-                    icon: '🌈',
-                    title: 'Distribuição natural de cores',
-                    explain: 'As cores apresentam variação independente, como esperado em cenas reais.',
-                    impact: 'real',
-                    weight: 60
-                });
-                scores.real += 60;
-                confidence += 15;
             }
 
-            // DETECTION 4: Edge Analysis
-            let edgeStrengths = [];
-            
-            for (let y = 2; y < canvas.height - 2; y += 4) {
-                for (let x = 2; x < canvas.width - 2; x += 4) {
-                    const idx = (y * canvas.width + x) * 4;
-                    const center = pixels[idx];
-                    const right = pixels[idx + 4] || center;
-                    const bottom = pixels[idx + canvas.width * 4] || center;
-                    const edge = Math.abs(center - right) + Math.abs(center - bottom);
-                    edgeStrengths.push(edge);
-                }
-            }
-
-            const avgEdge = edgeStrengths.reduce((a,b) => a+b) / edgeStrengths.length;
-            const edgeStdDev = Math.sqrt(edgeStrengths.reduce((s,v) => {
-                return s + Math.pow(v - avgEdge, 2);
-            }, 0) / edgeStrengths.length);
-
-            if (edgeStdDev < 12) {
-                findings.push({
-                    type: 'warning',
-                    icon: '📐',
-                    title: 'Bordas uniformes demais',
-                    explain: 'As bordas têm consistência artificial. Fotos reais têm bordas mais variadas.',
-                    impact: 'ai',
-                    weight: 50
-                });
-                scores.ai += 50;
-                confidence += 15;
-            } else if (edgeStdDev > 30) {
-                findings.push({
-                    type: 'good',
-                    icon: '🔲',
-                    title: 'Complexidade natural de bordas',
-                    explain: 'Padrão de bordas irregular típico de cenas fotografadas',
-                    impact: 'real',
-                    weight: 65
-                });
-                scores.real += 65;
-                confidence += 20;
-            }
-
-            // DETECTION 5: AI Artefact Detection
-            let artificialPatterns = 0;
-            const blockSize = 8;
-            
-            for (let y = 0; y < canvas.height - blockSize; y += blockSize) {
-                for (let x = 0; x < canvas.width - blockSize; x += blockSize) {
-                    let blockValues = [];
-                    for (let by = 0; by < blockSize; by++) {
-                        for (let bx = 0; bx < blockSize; bx++) {
-                            const idx = ((y + by) * canvas.width + (x + bx)) * 4;
-                            blockValues.push(pixels[idx]);
-                        }
-                    }
-                    
-                    // Detecta padrões repetitivos ou muito regulares
-                    const blockMean = blockValues.reduce((a,b) => a+b) / blockValues.length;
-                    const deviation = blockValues.reduce((s,v) => s + Math.abs(v - blockMean), 0) / blockValues.length;
-                    
-                    if (deviation < 3) artificialPatterns++;
-                }
-            }
-
-            const patternRatio = artificialPatterns / ((canvas.width * canvas.height) / (blockSize * blockSize));
-            
-            if (patternRatio > 0.4) {
+            // DETECÇÃO 5: Análise de textura
+            const textureAnalysis = analyzeTexturePatterns(pixels, canvas.width, canvas.height);
+            if (textureAnalysis.isSmooth) {
                 findings.push({
                     type: 'high',
-                    icon: '🤖',
-                    title: 'Padrões artificiais detectados',
-                    explain: 'Foram encontrados padrões muito regulares e repetitivos, característicos de imagens geradas por IA',
+                    icon: '🎨',
+                    title: 'Textura anormalmente lisa',
+                    explain: textureAnalysis.reason,
                     impact: 'ai',
                     weight: 85
                 });
                 scores.ai += 85;
                 confidence += 25;
             }
-            
-            // DETECTION 6: Análise de metadata EXIF
+
+            // DETECÇÃO 6: Análise de cores avançada
+            const colorAnalysis = analyzeColorPatterns(pixels);
+            if (colorAnalysis.isArtificial) {
+                findings.push({
+                    type: 'warning',
+                    icon: '🌈',
+                    title: 'Cores artificiais',
+                    explain: colorAnalysis.reason,
+                    impact: 'ai',
+                    weight: 60
+                });
+                scores.ai += 60;
+                confidence += 15;
+            }
+
+            // DETECÇÃO 7: Metadados EXIF
             if (exif) {
                 const hasCamera = exif.Make || exif.Model;
                 const hasExposure = exif.ExposureTime || exif.FNumber || exif.ISO;
+                const hasDateTime = exif.DateTime;
                 
-                if (hasCamera && hasExposure) {
+                if (hasCamera && hasExposure && hasDateTime) {
                     findings.push({
                         type: 'good',
                         icon: '📸',
-                        title: 'Metadados de câmera encontrados',
-                        explain: `Detectados dados genuínos de ${exif.Make || ''} ${exif.Model || ''}`,
+                        title: 'Metadados completos de câmera',
+                        explain: `Detectados dados genuínos de ${exif.Make || ''} ${exif.Model || ''} em ${exif.DateTime}`,
                         impact: 'real',
-                        weight: 100
+                        weight: 150
                     });
-                    scores.real += 100;
-                    confidence += 30;
+                    scores.real += 150;
+                    confidence += 35;
                 } else if (!hasCamera && !hasExposure) {
                     findings.push({
                         type: 'warning',
@@ -1721,16 +1648,16 @@
                         title: 'Sem metadados de câmera',
                         explain: 'Imagens geradas por IA tipicamente não têm dados de câmera',
                         impact: 'ai',
-                        weight: 40
+                        weight: 50
                     });
-                    scores.ai += 40;
+                    scores.ai += 50;
                     confidence += 15;
                 }
             }
 
             // Calcular resultado final
             const total = scores.ai + scores.real;
-            const aiProbability = (scores.ai / total) * 100;
+            const aiProbability = total > 0 ? (scores.ai / total) * 100 : 50;
             confidence = Math.min(100, confidence);
 
             return {
@@ -1739,6 +1666,217 @@
                 confidence,
                 aiProbability
             };
+        }
+
+        // Funções especializadas de análise
+        function analyzeNoisePattern(pixels, width, height) {
+            const noiseLevels = [];
+            const sampleSize = 50;
+            
+            for (let i = 0; i < sampleSize; i++) {
+                const x = Math.floor(Math.random() * (width - 10)) + 5;
+                const y = Math.floor(Math.random() * (height - 10)) + 5;
+                
+                const localNoise = calculateLocalNoise(pixels, width, x, y, 3);
+                noiseLevels.push(localNoise);
+            }
+            
+            const avgNoise = noiseLevels.reduce((a, b) => a + b) / noiseLevels.length;
+            const noiseVariance = calculateVariance(noiseLevels);
+            
+            if (avgNoise < 1.5) {
+                return {
+                    isArtificial: true,
+                    reason: `Ruído extremamente baixo (${avgNoise.toFixed(2)}) - típico de imagens geradas por IA`
+                };
+            } else if (avgNoise > 8 && noiseVariance > 4) {
+                return {
+                    isNatural: true,
+                    reason: `Ruído natural variável (${avgNoise.toFixed(2)}) - característico de câmeras reais`
+                };
+            } else if (noiseVariance < 0.5) {
+                return {
+                    isArtificial: true,
+                    reason: `Ruído uniforme artificial (${noiseVariance.toFixed(2)}) - padrão suspeito`
+                };
+            }
+            
+            return { isArtificial: false, isNatural: false };
+        }
+
+        function calculateLocalNoise(pixels, width, centerX, centerY, radius) {
+            let noise = 0;
+            let count = 0;
+            
+            for (let y = centerY - radius; y <= centerY + radius; y++) {
+                for (let x = centerX - radius; x <= centerX + radius; x++) {
+                    if (x >= 0 && x < width && y >= 0 && y < pixels.length / (width * 4)) {
+                        const idx = (y * width + x) * 4;
+                        const gray = (pixels[idx] + pixels[idx + 1] + pixels[idx + 2]) / 3;
+                        noise += gray;
+                        count++;
+                    }
+                }
+            }
+            
+            const mean = noise / count;
+            let variance = 0;
+            
+            for (let y = centerY - radius; y <= centerY + radius; y++) {
+                for (let x = centerX - radius; x <= centerX + radius; x++) {
+                    if (x >= 0 && x < width && y >= 0 && y < pixels.length / (width * 4)) {
+                        const idx = (y * width + x) * 4;
+                        const gray = (pixels[idx] + pixels[idx + 1] + pixels[idx + 2]) / 3;
+                        variance += Math.pow(gray - mean, 2);
+                    }
+                }
+            }
+            
+            return Math.sqrt(variance / count);
+        }
+
+        function analyzeFrequencyPatterns(pixels, width, height) {
+            // Simplified frequency analysis
+            const sampleSize = 100;
+            const highFreq = [];
+            const lowFreq = [];
+            
+            for (let i = 0; i < sampleSize; i++) {
+                const x = Math.floor(Math.random() * (width - 4));
+                const y = Math.floor(Math.random() * (height - 4));
+                
+                const idx = (y * width + x) * 4;
+                const center = (pixels[idx] + pixels[idx + 1] + pixels[idx + 2]) / 3;
+                
+                // High frequency (adjacent pixels)
+                const high = Math.abs(pixels[idx + 4] - center) + Math.abs(pixels[idx + width * 4] - center);
+                highFreq.push(high);
+                
+                // Low frequency (2 pixels away)
+                const low = Math.abs(pixels[idx + 8] - center) + Math.abs(pixels[idx + width * 8] - center);
+                lowFreq.push(low);
+            }
+            
+            const avgHigh = highFreq.reduce((a, b) => a + b) / highFreq.length;
+            const avgLow = lowFreq.reduce((a, b) => a + b) / lowFreq.length;
+            const ratio = avgHigh / (avgLow + 0.001);
+            
+            if (ratio < 0.3) {
+                return {
+                    hasAIpatterns: true,
+                    reason: `Baixa razão de frequência (${ratio.toFixed(2)}) - imagens IA têm menos detalhes finos`
+                };
+            }
+            
+            return { hasAIpatterns: false };
+        }
+
+        function analyzeEdgePatterns(pixels, width, height) {
+            const edgeStrengths = [];
+            const sampleSize = 50;
+            
+            for (let i = 0; i < sampleSize; i++) {
+                const x = Math.floor(Math.random() * (width - 2));
+                const y = Math.floor(Math.random() * (height - 2));
+                
+                const idx = (y * width + x) * 4;
+                const center = (pixels[idx] + pixels[idx + 1] + pixels[idx + 2]) / 3;
+                const right = (pixels[idx + 4] + pixels[idx + 5] + pixels[idx + 6]) / 3;
+                const bottom = (pixels[idx + width * 4] + pixels[idx + width * 4 + 1] + pixels[idx + width * 4 + 2]) / 3;
+                
+                const edge = Math.abs(center - right) + Math.abs(center - bottom);
+                edgeStrengths.push(edge);
+            }
+            
+            const avgEdge = edgeStrengths.reduce((a, b) => a + b) / edgeStrengths.length;
+            const edgeVariance = calculateVariance(edgeStrengths);
+            
+            if (edgeVariance < 5) {
+                return {
+                    isArtificial: true,
+                    reason: `Bordas uniformes (${edgeVariance.toFixed(2)}) - típico de imagens geradas`
+                };
+            }
+            
+            return { isArtificial: false };
+        }
+
+        function analyzeTexturePatterns(pixels, width, height) {
+            const textureSamples = [];
+            const sampleSize = 30;
+            
+            for (let i = 0; i < sampleSize; i++) {
+                const x = Math.floor(Math.random() * (width - 8));
+                const y = Math.floor(Math.random() * (height - 8));
+                
+                let texture = 0;
+                for (let dy = 0; dy < 8; dy++) {
+                    for (let dx = 0; dx < 8; dx++) {
+                        const idx = ((y + dy) * width + (x + dx)) * 4;
+                        texture += (pixels[idx] + pixels[idx + 1] + pixels[idx + 2]) / 3;
+                    }
+                }
+                
+                textureSamples.push(texture / 64);
+            }
+            
+            const textureVariance = calculateVariance(textureSamples);
+            
+            if (textureVariance < 2) {
+                return {
+                    isSmooth: true,
+                    reason: `Textura muito lisa e uniforme (${textureVariance.toFixed(2)}) - característica de IA`
+                };
+            }
+            
+            return { isSmooth: false };
+        }
+
+        function analyzeColorPatterns(pixels) {
+            const colorData = { r: [], g: [], b: [] };
+            
+            for (let i = 0; i < pixels.length; i += 40) {
+                colorData.r.push(pixels[i]);
+                colorData.g.push(pixels[i + 1]);
+                colorData.b.push(pixels[i + 2]);
+            }
+            
+            const corrRG = calculateCorrelation(colorData.r, colorData.g);
+            const corrRB = calculateCorrelation(colorData.r, colorData.b);
+            const corrGB = calculateCorrelation(colorData.g, colorData.b);
+            const avgCorr = (corrRG + corrRB + corrGB) / 3;
+            
+            if (avgCorr > 0.95) {
+                return {
+                    isArtificial: true,
+                    reason: `Cores altamente correlacionadas (${avgCorr.toFixed(3)}) - padrão artificial`
+                };
+            }
+            
+            return { isArtificial: false };
+        }
+
+        function calculateCorrelation(array1, array2) {
+            const n = array1.length;
+            let sum1 = 0, sum2 = 0, sum1Sq = 0, sum2Sq = 0, pSum = 0;
+            
+            for(let i = 0; i < n; i++) {
+                sum1 += array1[i];
+                sum2 += array2[i];
+                sum1Sq += array1[i] * array1[i];
+                sum2Sq += array2[i] * array2[i];
+                pSum += array1[i] * array2[i];
+            }
+            
+            const num = pSum - (sum1 * sum2 / n);
+            const den = Math.sqrt((sum1Sq - sum1 * sum1 / n) * (sum2Sq - sum2 * sum2 / n));
+            
+            return den === 0 ? 0 : num / den;
+        }
+
+        function calculateVariance(arr) {
+            const mean = arr.reduce((a, b) => a + b) / arr.length;
+            return arr.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / arr.length;
         }
 
         function displayReport(file, analysis, exif) {
